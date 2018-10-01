@@ -1,9 +1,18 @@
 // GitHub:    https://github.com/JamesMowery/turn-timer
 // By:        James Mowery
+// Modified by: Josiah Baldwin
 // Contact:   https://app.roll20.net/users/1001679/james-mowery
 
+var count_from = 0;
 var seconds = 0;
+var last_percentage = 100;
 var interval = null;
+var bar_chars = {
+    "open": "(",
+    "empty": "-",
+    "full": "|",
+    "close": ")"
+}
 
 var TurnTimer = TurnTimer || (function() {
     'use strict';
@@ -16,35 +25,11 @@ function countDown() {
 
     seconds = seconds - 1;
 
-    if (seconds == 121) {
-        sendChat("GM", "<div style='height:32px; border:1px solid #CCC; \
-        font-weight: bold;'><img src=\
-        'https://cdn0.iconfinder.com/data/icons/feather/96/clock-512.png' \
-        width='32px' height='32px' style='float: left;'> \
-        <div style='float: left; height: 16px; \
-        vertical-align:middle; margin: 8px 0 0 10px;'>\
-        2 Minutes Remaining</div></div>");
-    }
+    var bar = new Array(12);
+    bar[0] = bar_chars.open;
+    bar[11] = bar_chars.close;
 
-    if (seconds == 61) {
-        sendChat("GM", "<div style='height:32px; border:1px solid #CCC; \
-        font-weight: bold;'><img src=\
-        'https://cdn0.iconfinder.com/data/icons/feather/96/clock-512.png' \
-        width='32px' height='32px' style='float: left;'> \
-        <div style='float: left; height: 16px; \
-        vertical-align:middle; margin: 8px 0 0 10px;'>\
-        1 Minute Remaining</div></div>");
-    }
-
-    if (seconds == 16) {
-        sendChat("GM", "<div style='height:32px; border:1px solid #CCC; \
-        font-weight: bold;'><img src=\
-        'https://cdn0.iconfinder.com/data/icons/feather/96/clock-512.png' \
-        width='32px' height='32px' style='float: left;'> \
-        <div style='float: left; height: 16px; \
-        vertical-align:middle; margin: 8px 0 0 10px;'>\
-        15 Seconds Remaining!</div></div>");
-    }
+    var percentage = (seconds/count_from)*100;
 
     if (seconds <= 0) {
         sendChat("GM", "<div style='height:32px; border:1px solid #CCC; \
@@ -57,6 +42,20 @@ function countDown() {
 
         clearInterval(interval);
     }
+    else if ((Math.round(percentage/10) >= percentage/10) && Math.round(percentage/10) < (last_percentage/10)) {
+        last_percentage = percentage;
+        bar.fill(bar_chars.full, 1, 1+(last_percentage/10));
+        bar.fill(bar_chars.empty, (last_percentage/10)+1, 11);
+        sendChat("GM", "<div style='height:32px; border:1px solid #CCC; \
+        font-weight: bold;'><img src=\
+        'https://cdn0.iconfinder.com/data/icons/feather/96/clock-512.png' \
+        width='32px' height='32px' style='float: left;'> \
+        <div style='float: left; height: 16px; \
+        vertical-align:middle; margin: 8px 0 0 10px;'>" +
+        bar.join("") + "</div></div>");
+    }
+
+
 }
 
 on("chat:message", function(msg) {
@@ -83,6 +82,8 @@ on("chat:message", function(msg) {
             <div style='float: left; height: 16px; \
             vertical-align:middle; margin: 8px 0 0 10px;'>\
             Timer Started</div></div>");
+        count_from = seconds;
+        last_percentage = 100;
     }
     // When the GM types !t, start a timer for a default number of seconds
     else if(msg.type == "api" && msg.content.indexOf("!t") !== -1) {
@@ -98,10 +99,11 @@ on("chat:message", function(msg) {
             <div style='float: left; height: 16px; \
             vertical-align:middle; margin: 8px 0 0 10px;'>\
             Timer Started - 1 Minute</div></div>");
+        count_from = seconds;
+        last_percentage = 100;
     }
 });
 
 on("ready", function() {
     'use strict';
-
 });
